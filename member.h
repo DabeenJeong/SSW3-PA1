@@ -10,7 +10,14 @@ class member{
 		int borrow;
 		int restricted;
 		int date[3];
+		int s_type[2];
+		int s_ymdt[4];
 	public:
+		void set_stype();
+		int get_stype();
+		int get_snum();
+		void borrow_space(int yy, int mm, int dd, int tt, string s_type, int s_num);
+		int com_ymdt(int yy, int mm, int dd, int tt);
 		void set_name(string in_name, string in_type);
 		string get_name();
 		int get_borrow();
@@ -23,9 +30,47 @@ class member{
 };
 class Undergraduate:public member{
 };
+void member::set_stype(){
+	s_type[0] = 0;
+	s_type[1] = 0;
+}
+int member::get_stype(){
+	return s_type[0];
+}
+int member::get_snum(){
+	return s_type[1];
+}
+void member::borrow_space(int yy, int mm, int dd, int tt, string s_type, int s_num){
+	s_ymdt[0] = yy;
+	s_ymdt[1] = mm;
+	s_ymdt[2] = dd;
+	s_ymdt[3] = tt;
+	if(s_type.compare("StudyRoom") == 0){
+		s_type[0] = 1;
+		s_type[1] = s_num;
+	}
+	else{
+		s_type[0] = 2;
+		s_type[1] = s_num;
+	}
+
+}
+int member::com_ymdt(int yy, int mm, int dd, int tt){
+	if(s_ymdt[0] == yy){
+		if(s_ymdt[1] == mm){
+			if(s_ymdt[2] == dd){
+				return tt - s_ymdt[3];
+			}
+		}
+	}
+	return 0;
+
+}
 void member::set_name(string in_name, string in_type){
 	mem_name = in_name;
 	mem_type = in_type;
+	s_type[0] = 0;
+	s_type[1] = 0;
 	borrow = 0;
 	restricted = 0;
 	date[0] = 0;

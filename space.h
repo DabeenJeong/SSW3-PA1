@@ -7,7 +7,7 @@ class space{
 	private:
 	public:
 		virtual string get_name() = 0;
-		virtual int com_ymdt(int tt) = 0;
+		virtual int com_ymdt(int yy, int mm, int dd, int tt) = 0;
 		virtual int ret_time() = 0;
 		virtual void set_space() = 0;
 		virtual int get_empty() = 0;
@@ -94,7 +94,7 @@ int seat::ret_time(){
 	return time + 3;
 }
 void seat::set_space(){
-	empty = 50;
+	empty = 1;
 }
 int seat::get_empty(){
 	return empty;

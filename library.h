@@ -11,13 +11,14 @@ class library{
 	private:
 		vector<member> mem;
 		vector<resource> res;
-		seat* sea[3][50];
-		study_room* room[10];
+		space* sea[3][50];
+		space* room[10];
 		int res_num;
 		int mem_num;
 	public:
 		void set_resource();
 		void lets_party();
+		void reset_space();
 		void hustler(int yy, int mm, int dd, string r_type, string r_name, string in_op, string m_type, string m_name);
 		void hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num, string in_op, string m_type, string m_name, int num_of_m, int time_p);
 };
@@ -64,6 +65,13 @@ void library::lets_party(){
 	int tt = 0;
 	int i = 0;
 	int j = 0;
+	for(i = 0; i < 10; i++)
+		room[i] = new study_room;
+	for(i = 0; i < 3; i++){
+		for(j = 0; j < 50; j++){
+			sea[i][j] = new seat;
+		}
+	}
 	ifstream min("input.dat");
 	ifstream sin("space.dat");
 	min >> ymd;
@@ -92,13 +100,14 @@ void library::lets_party(){
 		hustler(yy, mm, dd, rtype, rname, op, mtype, mname);
 	}
 	sin >> ymdt;
-	sin >> stype;
-	sin >> snum;
-	sin >> s_op;
-	sin >> s_mtype;
-	sin >> s_mname;
-	sin >> num_of_m;
-	sin >> time_p;
+	sin >> ymdt;
+	sin >> ymdt;
+	sin >> ymdt;
+	sin >> ymdt;
+	sin >> ymdt;
+	sin >> ymdt;
+	sin >> ymdt;
+	reset_space();
 	while(!sin.eof()){
 		sin >> ymdt;
 		sin >> stype;
@@ -111,9 +120,8 @@ void library::lets_party(){
 			sin >> time_p;
 		}
 		if(sin.eof()) break;
-		j++;
+		i++;
 		ybuf = ymdt.substr(0, 4);
-		cout  << endl << ybuf << endl;
 		yy = stoi(ybuf);
 		mbuf = ymdt.substr(5, 2);
 		mm = stoi(mbuf);
@@ -121,7 +129,18 @@ void library::lets_party(){
 		dd = stoi(dbuf);
 		ybuf = ymdt.substr(11, 2);
 		tt = stoi(ybuf);
-		hustler2(yy, mm, dd, tt, stype, snum, s_op, s_mtype, s_mname, num_of_m, time_p);
+		cout << i << "\t";
+		hustler2(yy, mm, dd, tt, stype, snum-1, s_op, s_mtype, s_mname, num_of_m, time_p);
+	}
+}
+void library::reset_space(){
+	int i, j;
+	for(i = 0; i < 10; i++)
+		room[i]->set_space();
+	for(i = 0; i < 3; i++){
+		for(j = 0; j < 50; j++){
+			sea[i][j]->set_space();
+		}
 	}
 }
 void library::hustler(int yy, int mm, int dd, string r_type, string r_name, string in_op, string m_type, string m_name){
@@ -192,7 +211,7 @@ void library::hustler(int yy, int mm, int dd, string r_type, string r_name, stri
 	}
 	cout << "0\tSuccess." << endl;
 }
-void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num, string in_op, string m_name, string m_type, int num_of_m, int time_p){
+void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num, string in_op, string m_type, string m_name, int num_of_m, int time_p){
 	Undergraduate temp;
 	int i,j;
 	int m_index;
@@ -207,13 +226,19 @@ void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num,
 	else m_index = i;
 	if(in_op.compare("B") == 0){
 		if(s_type.compare("StudyRoom") == 0){
-			if(s_num > 10 || s_num < 1){
+			if(s_num > 9 || s_num < 0){
 				cout << "8\t" << "Invalid space id.\n";
 				return;
 			}
 			if(tt < 9 || tt > 18){
 				cout << "9\t" << "This space is not available now. Available from 09 to 18\n";
 				return;
+			}
+			if(mem.at(m_index).get_stype() != 0){
+				if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) < 3){
+					cout << "11\t" << "You already borrowed this kind of space.\n";
+					return;
+				}
 			}
 			if(num_of_m > 6){
 				cout << "12\t" << "Exceed available number.\n";
@@ -226,14 +251,16 @@ void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num,
 			if(room[s_num]->get_empty() == 0){
 				if(room[s_num]->com_ymdt(yy, mm, dd, tt) < 3){
 					cout << "14\t" << "There is no remain space. This space is available after " << room[s_num]->ret_time() << ".\n";
+					return;
 				}
 			}
 			room[s_num]->rent_space(yy, mm, dd, tt, m_name);
-			cout << "0\t Success.\n";
+			mem.at(m_index).borrow_space(yy, mm, dd, tt, s_type, s_num);
+			cout << "0\tSuccess.\n";
 			return;
 		}
 		else{
-			if(s_num > 3 || s_num < 1){
+			if(s_num > 2 || s_num < 0){
 				cout << "8\t" << "Invalid space id.\n";
 				return;
 			}
@@ -245,6 +272,12 @@ void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num,
 				cout << "9\t" << "This space is not available now. Available from 09 to 21\n";
 				return;
 			}
+			if(mem.at(m_index).get_stype() != 0){
+				if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) < 3){
+					cout << "11\t" << "You already borrowed this kind of space.\n";
+					return;
+				}
+			}
 			if(num_of_m > 1){
 				cout << "12\t" << "Exceed available number.\n";
 				return;
@@ -255,24 +288,23 @@ void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num,
 			}
 			for(j = 0; j < 50; j++){
 				if(sea[s_num][j]->get_empty() == 0){
-					if(sea[s_num][j]->com_ymdt(yy, mm, dd, tt) < 3){
-						cout << "14\t" << "There is no remain space. This space is available after " << sea[s_num][j]->ret_time() << ".\n";
+					if(sea[s_num][j]->com_ymdt(yy, mm, dd, tt) > 3){
+						break;
 					}
 				}
 				else break;
 			}
-			sea[s_num][j]->rent_space(yy, mm, dd, tt, m_name);
-			cout << "0\t Success.\n";
-			return;
-		}
-		if(mem.at(m_index).get_stype() != 0){
-			if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) < 3){
-				cout << "11\t" << "You already borrowed this kind of space.\n";
+			if(j == 50){
+				cout << "14\t" << "There is no remain space. This space is available after " << sea[s_num][0]->ret_time() << ".\n";
 				return;
 			}
+			sea[s_num][j]->rent_space(yy, mm, dd, tt, m_name);
+			mem.at(m_index).borrow_space(yy, mm, dd, tt, s_type, s_num);
+			cout << "0\tSuccess.\n";
+			return;
 		}
 	}
-	else if(in_op.compare("R")){
+	else if(in_op.compare("R") == 0){
 		if(s_type.compare("StudyRoom") == 0){
 			if(mem.at(m_index).get_stype() == 1){
 				if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) > 3){
@@ -284,8 +316,13 @@ void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num,
 				cout << "10\t" << "You did not borrow this place.\n";
 				return;
 			}
+			for(j = 0; j < 50; j++){
+				if(m_name.compare(sea[s_num][j]->get_name()) == 0){
+					break;
+				}
+			}
 			room[s_num]->back_space();
-			cout << "0\t Success.\n";
+			cout << "0\tSuccess.\n";
 			return;
 
 		}
@@ -306,7 +343,7 @@ void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num,
 				}
 			}
 			sea[s_num][j]->back_space();
-			cout << "0\t Success.\n";
+			cout << "0\tSuccess.\n";
 			return;
 		}
 	}

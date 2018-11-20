@@ -40,12 +40,12 @@ int member::get_stype(){
 int member::get_snum(){
 	return s_type[1];
 }
-void member::borrow_space(int yy, int mm, int dd, int tt, string s_type, int s_num){
+void member::borrow_space(int yy, int mm, int dd, int tt, string stype, int s_num){
 	s_ymdt[0] = yy;
 	s_ymdt[1] = mm;
 	s_ymdt[2] = dd;
 	s_ymdt[3] = tt;
-	if(s_type.compare("StudyRoom") == 0){
+	if(stype.compare("StudyRoom") == 0){
 		s_type[0] = 1;
 		s_type[1] = s_num;
 	}
@@ -63,7 +63,7 @@ int member::com_ymdt(int yy, int mm, int dd, int tt){
 			}
 		}
 	}
-	return 0;
+	return 24;
 
 }
 void member::set_name(string in_name, string in_type){

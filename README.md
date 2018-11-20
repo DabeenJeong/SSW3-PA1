@@ -1,7 +1,7 @@
-# System Software experiment3 PA1
+# System Software experiment3 PA2
 
 This program is Library management program.
-The structure of code has 3 classes(Library, Resource, Member).
+The structure of code has 4 classes(Library, Resource, Member, Space).
 
 ## Library class
 
@@ -74,23 +74,56 @@ void library::lets_party(){
 	cin >> mtype;
 	cin >> mname;
 	cout << "Op_#\tReturn_code\tDescription" << endl;
-	while(!cin.eof()){
-		cin >> ymd;
-		cin >> rtype;
-		cin >> rname;
-		cin >> op;
-		cin >> mtype;
-		cin >> mname;
-		if(cin.eof()) break;
+	while(cal1 == 0 || cal2 == 0){
+		if(cal1 == 0){
+			min >> ymd;
+			min >> rtype;
+			min >> rname;
+			min >> op;
+			min >> mtype;
+			min >> mname;
+			ybuf = ymd.substr(0, 2);
+			yy = stoi(ybuf);
+			mbuf = ymd.substr(3, 2);
+			mm = stoi(mbuf);
+			dbuf = ymd.substr(6, 2);
+			dd = stoi(dbuf);
+			cal1 = 1;
+		}
+		if(cal2 == 0){
+			sin >> ymdt;
+			sin >> stype;
+			sin >> snum;
+			sin >> s_op;
+			sin >> s_mtype;
+			sin >> s_mname;
+			if(s_op.compare("B") == 0){
+				sin >> num_of_m;
+				sin >> time_p;
+			}
+			ybuf = ymdt.substr(2, 2);
+			yys = stoi(ybuf);
+			mbuf = ymdt.substr(5, 2);
+			mms = stoi(mbuf);
+			dbuf = ymdt.substr(8, 2);
+			dds = stoi(dbuf);
+			ybuf = ymdt.substr(11, 2);
+			tts = stoi(ybuf);
+			cal2 = 1;
+		}
+		if(min.eof() && sin.eof()) break;
 		i++;
-		ybuf = ymd.substr(0, 2);
-		yy = stoi(ybuf);
-		mbuf = ymd.substr(3, 2);
-		mm = stoi(mbuf);
-		dbuf = ymd.substr(6, 7);
-		dd = stoi(dbuf);
 		cout << i << "\t";
-		hustler(yy, mm, dd, rtype, rname, op, mtype, mname);
+		if(((yy*360 + (mm-1) * 30 + dd - 1) <= (yys*360 + (mms-1) * 30 + dds - 1))&& !min.eof()){
+			hustler(yy, mm, dd, rtype, rname, op, mtype, mname);
+			cal1 = 0;
+		}
+		else if(!sin.eof()){
+			hustler2(yys, mms, dds, tts, stype, snum-1, s_op, s_mtype, s_mname, num_of_m, time_p);
+			cal2 = 0;
+		}
+		if(min.eof()) cal1 = 1;
+		if(sin.eof()) cal2 = 1;
 	}
 }
 ```
@@ -157,6 +190,151 @@ void library::hustler(int yy, int mm, int dd, string r_type, string r_name, stri
 	- If resource is not exist it will print return code 1 return immidiately.
 	- If op code is B, hustler check cases that borrow book(return code : 2, 4, 5, 6). If input don't have any other limitations, it calls lets borrow function of member&resource and return.
 	- If op code is R, hustler check cases that return book(return code : 3, 7). In this case input don't have limitaion in 3, it calls lets borrow function of member&resource and return.(in 7 hustler also calls lets back function, but it will return immidiately) 
+
+## hustler2
+
+```
+void library::hustler2(int yy, int mm, int dd, int tt, string s_type, int s_num, string in_op, string m_type, string m_name, int num_of_m, int time_p){
+	Undergraduate temp;
+	int i,j;
+	int m_index;
+	for(i = 0; i < mem_num; i++){
+		if(m_name.compare(mem.at(i).get_name()) == 0) break;
+	}
+	if(i == mem_num){
+		if(m_type.compare("Undergraduate") == 0) mem.push_back(temp);
+		mem.at(mem_num).set_name(m_name, m_type);
+		m_index = mem_num++;
+	}
+	else m_index = i;
+	if(in_op.compare("B") == 0){
+		if(s_type.compare("StudyRoom") == 0){
+			if(s_num > 9 || s_num < 0){
+				cout << "8\t" << "Invalid space id.\n";
+				return;
+			}
+			if(tt < 9 || tt > 18){
+				cout << "9\t" << "This space is not available now. Available from 09 to 18\n";
+				return;
+			}
+			if(mem.at(m_index).get_stype() != 0){
+				if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) < 3){
+					cout << "11\t" << "You already borrowed this kind of space.\n";
+					return;
+				}
+			}
+			if(num_of_m > 6){
+				cout << "12\t" << "Exceed available number.\n";
+				return;
+			}
+			if(time_p > 3){
+				cout << "13\t" << "Exceed available time.\n";
+				return;
+			}
+			if(room[s_num]->get_empty() == 0){
+				if(room[s_num]->com_ymdt(yy, mm, dd, tt) < 3){
+					cout << "14\t" << "There is no remain space. This space is available after " << room[s_num]->ret_time() << ".\n";
+					return;
+				}
+			}
+			room[s_num]->rent_space(yy, mm, dd, tt, m_name);
+			mem.at(m_index).borrow_space(yy, mm, dd, tt, s_type, s_num);
+			cout << "0\tSuccess.\n";
+			return;
+		}
+		else{
+			if(s_num > 2 || s_num < 0){
+				cout << "8\t" << "Invalid space id.\n";
+				return;
+			}
+			if((tt < 9 || tt > 18) && s_num == 3){
+				cout << "9\t" << "This space is not available now. Available from 09 to 18\n";
+				return;
+			}
+			if((tt < 9 || tt > 21) && s_num == 2){
+				cout << "9\t" << "This space is not available now. Available from 09 to 21\n";
+				return;
+			}
+			if(mem.at(m_index).get_stype() != 0){
+				if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) < 3){
+					cout << "11\t" << "You already borrowed this kind of space.\n";
+					return;
+				}
+			}
+			if(num_of_m > 1){
+				cout << "12\t" << "Exceed available number.\n";
+				return;
+			}
+			if(time_p > 3){
+				cout << "13\t" << "Exceed available time.\n";
+				return;
+			}
+			for(j = 0; j < 50; j++){
+				if(sea[s_num][j]->get_empty() == 0){
+					if(sea[s_num][j]->com_ymdt(yy, mm, dd, tt) > 3){
+						break;
+					}
+				}
+				else break;
+			}
+			if(j == 50){
+				cout << "14\t" << "There is no remain space. This space is available after " << sea[s_num][0]->ret_time() << ".\n";
+				return;
+			}
+			sea[s_num][j]->rent_space(yy, mm, dd, tt, m_name);
+			mem.at(m_index).borrow_space(yy, mm, dd, tt, s_type, s_num);
+			cout << "0\tSuccess.\n";
+			return;
+		}
+	}
+	else if(in_op.compare("R") == 0){
+		if(s_type.compare("StudyRoom") == 0){
+			if(mem.at(m_index).get_stype() == 1){
+				if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) > 3){
+					cout << "10\t" << "You did not borrow this place.\n";
+					return;
+				}
+			}
+			else{
+				cout << "10\t" << "You did not borrow this place.\n";
+				return;
+			}
+			for(j = 0; j < 50; j++){
+				if(m_name.compare(sea[s_num][j]->get_name()) == 0){
+					break;
+				}
+			}
+			room[s_num]->back_space();
+			cout << "0\tSuccess.\n";
+			return;
+
+		}
+		else{
+			if(mem.at(m_index).get_stype() == 2){
+				if(mem.at(m_index).com_ymdt(yy, mm, dd, tt) > 3){
+					cout << "10\t" << "You did not borrow this place.\n";
+					return;
+				}
+			}
+			else{
+				cout << "10\t" << "You did not borrow this place.\n";
+				return;
+			}
+			for(j = 0; j < 50; j++){
+				if(m_name.compare(sea[s_num][j]->get_name()) == 0){
+					break;
+				}
+			}
+			sea[s_num][j]->back_space();
+			cout << "0\tSuccess.\n";
+			return;
+		}
+	}
+}
+```
+- hustler2 is function for space.dat input.
+- It has same structure with hustler function.
+
 
 ## Resource class
 
@@ -403,4 +581,106 @@ int member::com_date(int yy, int mm, int dd){
 - com date function calculate difference between borrowed date and access date.
 
 
+## space class
 
+- Space class manages spaces.(study room and seat)
+- Space class has some values and functions to manage values.
+- It has study room and seat class.(these two classes hierarchy class of space class)
+
+```
+class space{
+	private:
+	public:
+		virtual string get_name() = 0;
+		virtual int com_ymdt(int yy, int mm, int dd, int tt) = 0;
+		virtual int ret_time() = 0;
+		virtual void set_space() = 0;
+		virtual int get_empty() = 0;
+		virtual void rent_space(int yy, int mm, int dd, int tt, string name_in) = 0;
+		virtual void back_space() = 0;
+};
+```
+
+### study class
+
+```
+class study_room:public space{
+	private:
+		string name;
+		int date[3];
+		int time;
+		int empty;
+	public:
+		string get_name();
+		int com_ymdt(int yy, int mm, int dd, int tt);
+		int ret_time();
+		void set_space();
+		int get_empty();
+		void rent_space(int yy, int mm, int dd, int tt, string name_in);
+		void back_space();
+};
+```
+
+### seat class
+
+```
+class seat:public space{
+	private:
+		string name;
+		int date[3];
+		int time;
+		int empty;
+	public:
+		string get_name();
+		int com_ymdt(int yy, int mm, int dd, int tt);
+		int ret_time();
+		void set_space();
+		int get_empty();
+		void rent_space(int yy, int mm, int dd, int tt, string name_in);
+		void back_space();
+};
+```
+
+### com_ymdt, ret_time, set_space, get_empty
+
+```
+int study_room::com_ymdt(int yy, int mm, int dd, int tt){
+	if(date[0] == yy){
+		if(date[1] == mm){
+			if(date[2] == dd){
+				return tt - time;
+			}
+		}
+	}
+	return 24;
+}
+int study_room::ret_time(){
+	return time + 3;
+}
+void study_room::set_space(){
+	empty = 1;
+}
+int study_room::get_empty(){
+	return empty;
+}
+```
+
+- In com_ymdt, if date is different return 24 and if date is same return time difference.
+
+### rent_space, back_space
+
+```
+void study_room::rent_space(int yy, int mm, int dd, int tt, string name_in){
+	empty = 0;
+	date[0] = yy;
+	date[1] = mm;
+	date[2] = dd;
+	time = tt;
+	name = name_in;
+}
+void study_room::back_space(){
+	empty = 1;
+}
+```
+
+- These function modify empty that means that space is empty or not.

@@ -62,9 +62,14 @@ void library::lets_party(){
 	int yy = 0;
 	int mm = 0;
 	int dd = 0;
-	int tt = 0;
+	int yys = 0;
+	int mms = 0;
+	int dds = 0;
+	int tts = 0;
 	int i = 0;
 	int j = 0;
+	int cal1 = 0;
+	int cal2 = 0;
 	for(i = 0; i < 10; i++)
 		room[i] = new study_room;
 	for(i = 0; i < 3; i++){
@@ -80,25 +85,6 @@ void library::lets_party(){
 	min >> op;
 	min >> mtype;
 	min >> mname;
-	cout << "Op_#\tReturn_code\tDescription" << endl;
-	while(!min.eof()){
-		min >> ymd;
-		min >> rtype;
-		min >> rname;
-		min >> op;
-		min >> mtype;
-		min >> mname;
-		if(min.eof()) break;
-		i++;
-		ybuf = ymd.substr(0, 2);
-		yy = stoi(ybuf);
-		mbuf = ymd.substr(3, 2);
-		mm = stoi(mbuf);
-		dbuf = ymd.substr(6, 2);
-		dd = stoi(dbuf);
-		cout << i << "\t";
-		hustler(yy, mm, dd, rtype, rname, op, mtype, mname);
-	}
 	sin >> ymdt;
 	sin >> ymdt;
 	sin >> ymdt;
@@ -108,29 +94,58 @@ void library::lets_party(){
 	sin >> ymdt;
 	sin >> ymdt;
 	reset_space();
-	while(!sin.eof()){
-		sin >> ymdt;
-		sin >> stype;
-		sin >> snum;
-		sin >> s_op;
-		sin >> s_mtype;
-		sin >> s_mname;
-		if(s_op.compare("B") == 0){
-			sin >> num_of_m;
-			sin >> time_p;
+	cout << "Op_#\tReturn_code\tDescription" << endl;
+	i = 0;
+	while(cal1 == 0 || cal2 == 0){
+		if(cal1 == 0){
+			min >> ymd;
+			min >> rtype;
+			min >> rname;
+			min >> op;
+			min >> mtype;
+			min >> mname;
+			ybuf = ymd.substr(0, 2);
+			yy = stoi(ybuf);
+			mbuf = ymd.substr(3, 2);
+			mm = stoi(mbuf);
+			dbuf = ymd.substr(6, 2);
+			dd = stoi(dbuf);
+			cal1 = 1;
 		}
-		if(sin.eof()) break;
+		if(cal2 == 0){
+			sin >> ymdt;
+			sin >> stype;
+			sin >> snum;
+			sin >> s_op;
+			sin >> s_mtype;
+			sin >> s_mname;
+			if(s_op.compare("B") == 0){
+				sin >> num_of_m;
+				sin >> time_p;
+			}
+			ybuf = ymdt.substr(2, 2);
+			yys = stoi(ybuf);
+			mbuf = ymdt.substr(5, 2);
+			mms = stoi(mbuf);
+			dbuf = ymdt.substr(8, 2);
+			dds = stoi(dbuf);
+			ybuf = ymdt.substr(11, 2);
+			tts = stoi(ybuf);
+			cal2 = 1;
+		}
+		if(min.eof() && sin.eof()) break;
 		i++;
-		ybuf = ymdt.substr(0, 4);
-		yy = stoi(ybuf);
-		mbuf = ymdt.substr(5, 2);
-		mm = stoi(mbuf);
-		dbuf = ymdt.substr(8, 2);
-		dd = stoi(dbuf);
-		ybuf = ymdt.substr(11, 2);
-		tt = stoi(ybuf);
 		cout << i << "\t";
-		hustler2(yy, mm, dd, tt, stype, snum-1, s_op, s_mtype, s_mname, num_of_m, time_p);
+		if(((yy*360 + (mm-1) * 30 + dd - 1) <= (yys*360 + (mms-1) * 30 + dds - 1))&& !min.eof()){
+			hustler(yy, mm, dd, rtype, rname, op, mtype, mname);
+			cal1 = 0;
+		}
+		else if(!sin.eof()){
+			hustler2(yys, mms, dds, tts, stype, snum-1, s_op, s_mtype, s_mname, num_of_m, time_p);
+			cal2 = 0;
+		}
+		if(min.eof()) cal1 = 1;
+		if(sin.eof()) cal2 = 1;
 	}
 }
 void library::reset_space(){
